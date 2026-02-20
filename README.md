@@ -6,19 +6,17 @@ interceptors)**.
 
 ---
 
-# 🚀 Como rodar a aplicação com Docker
+## 🚀 Como rodar a aplicação com Docker
 
-## 1️⃣ Build da imagem
+### 1) Build da imagem
 
-```bash
 docker build -t innovation-brindes-app .
-```
 
-## 2️⃣ Rodar o container
+### 2) Rodar o container
 
-```bash
-docker run -p 3000:3000   -e NEXT_PUBLIC_API_URL=https://apihomolog.innovationbrindes.com.br/api/innova-dinamica   innovation-brindes-app
-```
+docker run -p 3000:3000 -e
+NEXT_PUBLIC_API_URL=https://apihomolog.innovationbrindes.com.br/api/innova-dinamica
+innovation-brindes-app
 
 A aplicação ficará disponível em:
 
@@ -26,137 +24,123 @@ http://localhost:3000
 
 ---
 
-# 🛠 Stack Utilizada
+## 🛠 Stack utilizada
 
 - Next.js (App Router)
 - TypeScript
 - TailwindCSS
-- Zustand (State Management)
-- React Query (Data Fetching + Cache)
-- Axios com Interceptors
-- Radix Dialog (Modal Acessível)
-- Middleware para proteção de rotas
-- Docker (Multi-stage build)
+- Zustand
+- React Query
+- Axios com interceptors
+- Radix Dialog
+- Middleware (proteção de rota)
+- Docker
+- Vitest + React Testing Library
 
 ---
 
-# 🔐 Autenticação
+## 🔐 Autenticação
 
-- Login via `POST /login/acessar`
-- Token salvo em:
-  - `localStorage` (necessário para o interceptor)
-  - `cookie` (necessário para o middleware)
-- Interceptor adiciona automaticamente: Authorization: Bearer
-  `<token>`{=html}
-- Em caso de `401`, o usuário é redirecionado para `/login`
+- Login via POST /login/acessar
+- Token salvo em localStorage (interceptor)
+- Token salvo em cookie (middleware)
+- Authorization: Bearer `<token>`{=html}
+- Em caso de 401 → redireciona para /login
 
 ---
 
-# 📦 Funcionalidades Implementadas
+## 📦 Funcionalidades implementadas
 
-✔ Login com "manter logado"\
-✔ Rota protegida com Middleware\
-✔ Listagem de produtos\
-✔ Busca com debounce (POST)\
-✔ Ordenação local (nome e preço)\
-✔ Infinite scroll (client-side)\
-✔ Favoritos persistidos no localStorage\
-✔ Quick View em modal acessível\
-✔ Tratamento de erro + retry\
-✔ Skeleton loading\
-✔ SEO básico (title + description)
-
----
-
-# 🧠 Decisões Técnicas
-
-## Middleware + Cookie
-
-O Middleware do Next.js não possui acesso ao localStorage.\
-Por isso o token também é salvo em cookie para permitir proteção de rota
-no edge.
-
-## Infinite Scroll Client-side
-
-A API não fornece paginação.\
-Foi adotada estratégia de: - Buscar todos os produtos - Paginar em
-memória por lotes - IntersectionObserver para carregar mais
-
-## Zustand
-
-Escolhido por: - Simplicidade - Performance - Evitar re-renderizações
-desnecessárias - Persistência facilitada
-
-## React Query
-
-Utilizado para: - Cache inteligente - Controle de loading - Retry
-controlado - Separação clara da camada de dados
-
-## Modal com Radix
-
-Garantia de: - Focus trap - ESC para fechar - Aria attributes -
-Acessibilidade adequada
+- Login com "manter logado"
+- Rota protegida com Middleware
+- Listagem de produtos
+- Busca com debounce (POST)
+- Ordenação local (nome e preço)
+- Infinite scroll por lotes
+- Favoritos persistidos no localStorage
+- Quick View acessível
+- Skeleton + tratamento de erro
+- SEO básico
 
 ---
 
-# ⚠ Pendências / Melhorias Futuras
+## 🧪 Testes
 
-- Paginação real caso API evolua
-- Testes automatizados (Jest + RTL)
-- Error Boundary global personalizada
-- Validação de schema no login
-- Melhoria no carregamento incremental do infinite scroll
-- Ajustes finos para atingir 100% no Lighthouse
+Foi implementado 1 teste unitário com Vitest + React Testing Library.
 
----
+Arquivo testado: src/features/products/ProductCard.test.tsx
 
-# 📊 Lighthouse (Desktop)
+Valida: - Renderização de nome e código - Clique no botão CONFIRA
+chamando onQuickView
 
-Executado em modo produção.
+Rodar testes:
 
-Resultado médio obtido:
+yarn test:run
 
-- Performance: 90+
-- Accessibility: 90+
-- Best Practices: 90+
-- SEO: 100
+Modo watch:
 
-Adicionar screenshot em: docs/lighthouse-desktop.png
+yarn test
 
 ---
 
-# 🎥 Demonstração do Fluxo
+## 🧠 Decisões Técnicas
 
-Fluxo demonstrado:
+### Middleware + Cookie
 
-1.  Login
-2.  Redirecionamento para produtos
-3.  Busca com debounce
-4.  Favoritar produto
-5.  Quick View
-6.  Logout
+Middleware do Next não acessa localStorage, então o token também é salvo
+em cookie.
 
-Adicionar GIF ou MP4 curto em: docs/demo-flow.mp4
+### Infinite Scroll
+
+Como a API não possui paginação, foi implementado carregamento por lotes
+no client usando IntersectionObserver.
+
+### Zustand
+
+Utilizado para gerenciamento simples e performático de estado global.
+
+### React Query
+
+Gerenciamento de cache, loading e retry automático.
+
+### Modal com Radix
+
+Garantia de acessibilidade (focus trap e ESC).
 
 ---
 
-# 🧪 Rodando sem Docker
+## ⚠ Pendências / Melhorias Futuras
 
-```bash
-yarn
-yarn dev
-```
+- Paginação real se API suportar
+- Ampliar cobertura de testes
+- Melhorar UX do infinite scroll
+- Ajustes para atingir 100% no Lighthouse
 
-Criar `.env.local`:
+---
 
-```bash
+## 📊 Lighthouse (Desktop)
+
+![Lighthouse Desktop](docs/lighthouse-desktop.png)
+
+---
+
+## 🎥 Demonstração do Fluxo
+
+[▶️ Assistir demonstração](docs/demo-flow.mp4)
+
+---
+
+## 🧪 Rodando sem Docker
+
+yarn yarn dev
+
+Criar .env.local:
+
 NEXT_PUBLIC_API_URL=https://apihomolog.innovationbrindes.com.br/api/innova-dinamica
-```
 
 ---
 
-# 📌 Considerações Finais
+## 📌 Considerações Finais
 
 Projeto estruturado com foco em boas práticas modernas do ecossistema
-React, organização por domínio e escalabilidade futura.
-# innovation-brindes
+React/Next.js, organização por domínio e qualidade de código.

@@ -34,7 +34,6 @@ export default function LoginForm() {
       const httpStatus = err?.response?.status;
       const apiStatus = err?.apiStatus;
 
-      // PDF/API: status=0 indicates application error
       if (apiStatus === 0) {
         setErrorMsg(err?.message || "Erro ao autenticar.");
       } else if (!err?.response || httpStatus === 0) {

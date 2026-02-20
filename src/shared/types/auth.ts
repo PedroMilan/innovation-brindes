@@ -4,7 +4,7 @@ export type LoginPayload = {
 };
 
 export type LoginResponse = {
-  status: number; // 1 sucesso, 0 erro
+  status: number;
   message: string;
   token_de_acesso: string;
   dados_usuario: {

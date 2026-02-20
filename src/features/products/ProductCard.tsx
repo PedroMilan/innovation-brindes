@@ -8,27 +8,36 @@ import { IconHeart } from "@/components/icons";
 import clsx from "clsx";
 import { formatBRL, safeNumber } from "@/shared/utils/format";
 
-export function ProductCard(props: {
+type Props = {
   product: Product;
   onQuickView: (p: Product) => void;
   isFavorite: boolean;
   onToggleFavorite: () => void;
-}) {
+};
+
+function ProductCardBase(props: Props) {
   const p = props.product;
-  const price = formatBRL(safeNumber(p.preco));
+
+  const price = React.useMemo(() => formatBRL(safeNumber(p.preco)), [p.preco]);
+
+  const handleQuick = React.useCallback(() => {
+    props.onQuickView(p);
+  }, [props, p]);
 
   return (
     <div className="relative overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
-      {false ? null : null}
-
       <button
         type="button"
         onClick={props.onToggleFavorite}
         className={clsx(
           "absolute left-2 top-2 rounded-full p-2 transition focus:outline-none focus:ring-2 focus:ring-brand-500/40",
-          props.isFavorite ? "bg-rose-50 text-rose-600" : "bg-white/90 text-neutral-600 hover:bg-neutral-50",
+          props.isFavorite
+            ? "bg-rose-50 text-rose-600"
+            : "bg-white/90 text-neutral-600 hover:bg-neutral-50",
         )}
-        aria-label={props.isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+        aria-label={
+          props.isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"
+        }
       >
         <IconHeart filled={props.isFavorite} />
       </button>
@@ -44,9 +53,9 @@ export function ProductCard(props: {
                 src={p.imagem}
                 alt={p.nome}
                 fill
-                sizes="(max-width: 768px) 50vw, 20vw"
+                sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 20vw"
                 className="object-contain"
-                priority={false}
+                loading="lazy"
               />
             </div>
           </div>
@@ -55,16 +64,11 @@ export function ProductCard(props: {
             {p.descricao}
           </p>
 
-          <div className="mt-3 flex items-center justify-center gap-1">
-            {/* Dots (visual only; API doesn't provide colors in the test) */}
-            {Array.from({ length: 10 }).map((_, i) => (
-              <span
-                key={i}
-                className="h-2 w-2 rounded-full bg-neutral-300"
-                aria-hidden="true"
-              />
-            ))}
-          </div>
+          {/* ✅ substitui 10 bolinhas por 1 elemento leve (parece "paleta") */}
+          <div
+            className="mt-3 h-2 w-28 rounded-full border border-neutral-200 bg-gradient-to-r from-neutral-300 via-neutral-200 to-neutral-300"
+            aria-hidden="true"
+          />
 
           <div className="mt-2 text-[11px] text-neutral-500">a partir de</div>
           <div className="text-base font-bold">{price}</div>
@@ -73,7 +77,7 @@ export function ProductCard(props: {
             <Button
               type="button"
               className="h-10 w-full rounded-none rounded-b-xl"
-              onClick={() => props.onQuickView(p)}
+              onClick={handleQuick}
             >
               CONFIRA
             </Button>
@@ -83,3 +87,14 @@ export function ProductCard(props: {
     </div>
   );
 }
+
+export const ProductCard = React.memo(
+  ProductCardBase,
+  (prev, next) =>
+    prev.product.codigo === next.product.codigo &&
+    prev.product.preco === next.product.preco &&
+    prev.product.nome === next.product.nome &&
+    prev.product.imagem === next.product.imagem &&
+    prev.product.descricao === next.product.descricao &&
+    prev.isFavorite === next.isFavorite,
+);

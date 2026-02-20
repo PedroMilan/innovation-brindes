@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useAuthStore } from "@/store/auth.store";
 import { useFavoritesStore } from "@/store/favorites.store";
 import { useProducts } from "@/features/products/useProducts";
@@ -11,19 +10,24 @@ import {
   type ToolbarState,
 } from "@/features/products/ProductsToolbar";
 import { ProductGrid } from "@/features/products/ProductGrid";
-import { ProductQuickView } from "@/features/products/ProductQuickView";
 import type { Product } from "@/shared/types/product";
 import { ProductSkeleton } from "@/features/products/ProductSkeleton";
 import { safeNumber } from "@/shared/utils/format";
+import { EnvelopeIcon, PhoneIcon } from "@heroicons/react/24/outline";
+
+const ProductQuickView = dynamic(
+  () =>
+    import("@/features/products/ProductQuickView").then(
+      (m) => m.ProductQuickView,
+    ),
+  { ssr: false },
+);
+
+const PAGE_SIZE = 10;
 
 export default function ProductsClient() {
-  const router = useRouter();
-
-  // ✅ selectors (estáveis)
-  const token = useAuthStore((s) => s.token);
   const userName = useAuthStore((s) => s.userName);
   const hydrateAuth = useAuthStore((s) => s.hydrate);
-  const logout = useAuthStore((s) => s.logout);
 
   const favoriteCodes = useFavoritesStore((s) => s.favoriteCodes);
   const hydrateFav = useFavoritesStore((s) => s.hydrate);
@@ -45,15 +49,43 @@ export default function ProductsClient() {
     search: toolbar.search,
   });
 
-  const [visible, setVisible] = React.useState(20);
+  const [visible, setVisible] = React.useState(PAGE_SIZE);
   const sentinelRef = React.useRef<HTMLDivElement | null>(null);
 
-  // Reset visible on new data
   React.useEffect(() => {
-    setVisible(20);
+    setVisible(PAGE_SIZE);
   }, [data]);
 
-  // Infinite scroll (client-side batches)
+  const itemsRaw = data ?? [];
+
+  const itemsFiltered = React.useMemo(() => {
+    if (!toolbar.onlyFavorites) return itemsRaw;
+    return itemsRaw.filter((p) => favoriteCodes.includes(p.codigo));
+  }, [itemsRaw, toolbar.onlyFavorites, favoriteCodes]);
+
+  const itemsSorted = React.useMemo(() => {
+    const arr = [...itemsFiltered];
+
+    arr.sort((a, b) => {
+      if (toolbar.sort === "nome_asc")
+        return a.nome.localeCompare(b.nome, "pt-BR");
+      if (toolbar.sort === "nome_desc")
+        return b.nome.localeCompare(a.nome, "pt-BR");
+      if (toolbar.sort === "preco_asc")
+        return safeNumber(a.preco) - safeNumber(b.preco);
+      return safeNumber(b.preco) - safeNumber(a.preco);
+    });
+
+    return arr;
+  }, [itemsFiltered, toolbar.sort]);
+
+  const items = React.useMemo(
+    () => itemsSorted.slice(0, Math.min(visible, itemsSorted.length)),
+    [itemsSorted, visible],
+  );
+
+  const hasMore = items.length < itemsSorted.length;
+
   React.useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
@@ -61,84 +93,84 @@ export default function ProductsClient() {
     const io = new IntersectionObserver(
       (entries) => {
         const first = entries[0];
-        if (first?.isIntersecting) {
-          setVisible((v) => v + 20);
-        }
+        if (!first?.isIntersecting) return;
+
+        setVisible((v) => {
+          if (v >= itemsSorted.length) return v;
+          return v + PAGE_SIZE;
+        });
       },
       { rootMargin: "800px" },
     );
 
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [itemsSorted.length]);
 
   const [quickOpen, setQuickOpen] = React.useState(false);
   const [quickProduct, setQuickProduct] = React.useState<Product | null>(null);
 
-  function openQuick(p: Product) {
+  const openQuick = React.useCallback((p: Product) => {
     setQuickProduct(p);
     setQuickOpen(true);
-  }
+  }, []);
 
-  const itemsRaw = data ?? [];
+  const todayLabel = React.useMemo(() => {
+    const now = new Date();
 
-  // Filter favorites if enabled
-  const itemsFiltered = toolbar.onlyFavorites
-    ? itemsRaw.filter((p) => favoriteCodes.includes(p.codigo))
-    : itemsRaw;
+    const weekday = new Intl.DateTimeFormat("pt-BR", {
+      weekday: "long",
+    }).format(now);
 
-  // Local sort
-  const itemsSorted = [...itemsFiltered].sort((a, b) => {
-    if (toolbar.sort === "nome_asc")
-      return a.nome.localeCompare(b.nome, "pt-BR");
-    if (toolbar.sort === "nome_desc")
-      return b.nome.localeCompare(a.nome, "pt-BR");
-    if (toolbar.sort === "preco_asc")
-      return safeNumber(a.preco) - safeNumber(b.preco);
-    return safeNumber(b.preco) - safeNumber(a.preco);
-  });
+    const date = new Intl.DateTimeFormat("pt-BR").format(now);
 
-  const items = itemsSorted.slice(0, Math.min(visible, itemsSorted.length));
-  const hasMore = items.length < itemsSorted.length;
+    return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${date}`;
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Top bar (similar to screenshot) */}
       <header className="h-14 bg-brand-500">
         <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4">
-          <div className="flex items-center gap-3">
-            <div className="relative h-9 w-36">
-              <Image
-                src="/logo.jpg"
-                alt="Innovation Brindes"
-                fill
-                className="object-contain"
-                priority
-              />
+          <div className="flex items-center gap-1">
+            <div className="flex flex-col pl-15">
+              <h4 className="text-white">innovation</h4>
+              <span className="text-white text-[10px] text-end">BRINDES</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 text-white">
-            <div className="hidden text-right text-xs leading-tight md:block">
-              <div className="font-semibold">{userName ?? "Usuário"}</div>
-              <div className="opacity-90">Bem-vindo!</div>
+          <div className="flex items-center gap-6 text-white">
+            <div className="relative">
+              <EnvelopeIcon className="h-6 w-6" />
+              <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-bold text-brand-600">
+                11
+              </span>
             </div>
 
-            <button
-              onClick={logout}
-              className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40"
-            >
-              Sair
-            </button>
+            <div className="relative">
+              <PhoneIcon className="h-6 w-6" />
+              <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-bold text-brand-600">
+                11
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-white bg-white/30">
+                <span className="text-lg font-bold text-white">
+                  {userName?.charAt(0) ?? "U"}
+                </span>
+              </div>
+
+              <div className="text-right text-sm leading-tight">
+                <div className="font-semibold">{userName ?? "Usuário"}</div>
+                <div className="text-xs opacity-90">{todayLabel}</div>
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl p-4">
-        <ProductsToolbar
-          value={{ ...toolbar, onlyFavorites: toolbar.onlyFavorites }}
-          onChange={setToolbar}
-        />
+        <ProductsToolbar value={toolbar} onChange={setToolbar} />
 
         <div className="mt-4">
           {isError ? (
@@ -175,21 +207,18 @@ export default function ProductsClient() {
                 onToggleFavorite={(code) => toggleFavorite(code)}
               />
 
-              {/* Sentinel for infinite scroll */}
               <div ref={sentinelRef} className="h-10" />
 
-              {/* Loading incremental */}
               {isFetching && !isLoading ? (
                 <div className="mt-4 text-center text-xs text-neutral-500">
                   Carregando...
                 </div>
               ) : null}
 
-              {/* Fallback button in case IntersectionObserver doesn't fire */}
               {hasMore ? (
                 <div className="mt-4 flex justify-center">
                   <button
-                    onClick={() => setVisible((v) => v + 20)}
+                    onClick={() => setVisible((v) => v + PAGE_SIZE)}
                     className="rounded-full border border-neutral-200 bg-white px-5 py-2 text-sm font-semibold hover:bg-neutral-50"
                   >
                     Carregar mais

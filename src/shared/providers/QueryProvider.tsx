@@ -11,7 +11,6 @@ function makeClient() {
         staleTime: 30_000,
         refetchOnWindowFocus: false,
         retry: (failureCount, error: any) => {
-          // If API is down, don't spam retries.
           const status = error?.response?.status;
           if (status === 401) return false;
           return failureCount < 1;
@@ -21,13 +20,19 @@ function makeClient() {
   });
 }
 
-export default function QueryProvider({ children }: { children: React.ReactNode }) {
+export default function QueryProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [client] = React.useState(() => makeClient());
 
   return (
     <QueryClientProvider client={client}>
       {children}
-      {process.env.NODE_ENV === "development" ? <ReactQueryDevtools initialIsOpen={false} /> : null}
+      {process.env.NODE_ENV === "development" ? (
+        <ReactQueryDevtools initialIsOpen={false} />
+      ) : null}
     </QueryClientProvider>
   );
 }

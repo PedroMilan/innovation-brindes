@@ -39,13 +39,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     s.setItem("user_name", nome);
     s.setItem("remember", remember ? "1" : "0");
 
-    // Also store in localStorage for the interceptor (requirement).
     if (!remember) {
       localStorage.setItem(AUTH_TOKEN, token);
       localStorage.setItem("user_name", nome);
     }
 
-    // Cookie for middleware (route protection).
     setCookie(AUTH_COOKIE, token, remember ? 7 : 1);
 
     set({ token, userName: nome });

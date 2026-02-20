@@ -21,10 +21,9 @@ export default function LoginClient() {
   return (
     <main className="min-h-screen">
       <div className="relative min-h-screen">
-        {/* Background image (right) */}
         <div className="absolute inset-0">
           <Image
-            src="/login-bg.jpg"
+            src="/fundo.avif"
             alt="Background"
             fill
             priority
