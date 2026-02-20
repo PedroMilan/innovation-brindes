@@ -128,6 +128,8 @@ Garantia de acessibilidade (focus trap e ESC).
 
 ![Demonstração do fluxo](./docs/demo-flow.gif)
 
+Esse Issue do gif é erro de uma extensão que uso em meu navegador.
+
 ---
 
 ## 🧪 Rodando sem Docker
