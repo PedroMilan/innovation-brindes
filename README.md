@@ -126,7 +126,7 @@ Garantia de acessibilidade (focus trap e ESC).
 
 ## 🎥 Demonstração do Fluxo
 
-[▶️ Assistir demonstração](docs/demo-flow.mp4)
+![Demonstração do fluxo](./docs/demo-flow.gif)
 
 ---
 
