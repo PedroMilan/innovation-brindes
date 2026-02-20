@@ -128,7 +128,7 @@ Garantia de acessibilidade (focus trap e ESC).
 
 ![Demonstração do fluxo](./docs/demo-flow.gif)
 
-Esse Issue do gif é erro de uma extensão que uso em meu navegador.
+Esse Issue do gif é erro de uma extensão que uso no navegador.
 
 ---
 
