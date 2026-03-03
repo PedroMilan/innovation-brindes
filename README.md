@@ -10,13 +10,14 @@ interceptors)**.
 
 ### 1) Build da imagem
 
-docker build -t innovation-brindes-app .
+docker build \
+  -t innovation-brindes-app \
+  --build-arg NEXT_PUBLIC_API_URL=https://apihomolog.innovationbrindes.com.br/api/innova-dinamica \
+  .
 
 ### 2) Rodar o container
 
-docker run -p 3000:3000 -e
-NEXT_PUBLIC_API_URL=https://apihomolog.innovationbrindes.com.br/api/innova-dinamica
-innovation-brindes-app
+docker run -p 3000:3000 innovation-brindes-app
 
 A aplicação ficará disponível em:
 
