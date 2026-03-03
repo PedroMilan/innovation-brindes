@@ -64,7 +64,7 @@ function ProductCardBase(props: Props) {
             {p.descricao}
           </p>
 
-          {/* ✅ substitui 10 bolinhas por 1 elemento leve (parece "paleta") */}
+          
           <div
             className="mt-3 h-2 w-28 rounded-full border border-neutral-200 bg-gradient-to-r from-neutral-300 via-neutral-200 to-neutral-300"
             aria-hidden="true"
